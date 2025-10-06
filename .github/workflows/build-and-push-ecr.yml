@@ -38,10 +38,22 @@ jobs:
         # Create models directory
         mkdir -p models/Ministral-8B-Instruct-2410
         
-        # Download the model
+        # Set environment variable for authentication
+        export HUGGINGFACE_HUB_TOKEN="${{ secrets.HUGGINGFACE_HUB_TOKEN }}"
+        
+        # Download the model with proper authentication
         python -c "
-        from huggingface_hub import snapshot_download
         import os
+        from huggingface_hub import snapshot_download, login
+        
+        # Login with token
+        token = os.getenv('HUGGINGFACE_HUB_TOKEN')
+        if not token:
+            print('❌ HUGGINGFACE_HUB_TOKEN not found')
+            exit(1)
+            
+        print('🔐 Authenticating with Hugging Face...')
+        login(token=token)
         
         print('🚀 Downloading Ministral 8B model...')
         print('This may take a while as the model is ~16GB...')
@@ -50,7 +62,7 @@ jobs:
             snapshot_download(
                 repo_id='mistralai/Ministral-8B-Instruct-2410',
                 local_dir='models/Ministral-8B-Instruct-2410',
-                resume_download=True
+                token=token
             )
             print('✅ Model downloaded successfully!')
         except Exception as e:
