@@ -27,6 +27,17 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
       
+    - name: Clean up disk space
+      run: |
+        # Clean up disk space before downloading large model
+        sudo apt-get clean
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        df -h
+        
     - name: Download Ministral 8B Model
       working-directory: ./ecr-build
       env:
@@ -69,6 +80,13 @@ jobs:
             print(f'❌ Error downloading model: {e}')
             exit(1)
         "
+        
+    - name: Clean up after download
+      run: |
+        # Clean up temporary files after download
+        sudo apt-get autoremove -y
+        sudo apt-get autoclean
+        df -h
         
     - name: Build, tag, and push image to Amazon ECR
       working-directory: ./ecr-build
