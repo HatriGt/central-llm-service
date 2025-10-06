@@ -13,7 +13,8 @@ phases:
       - echo "Downloading Ministral 8B model..."
       - cd ecr-build
       - mkdir -p models/Ministral-8B-Instruct-2410
-      - python -c "
+      - |
+        python -c "
         import os
         from huggingface_hub import snapshot_download, login
         
