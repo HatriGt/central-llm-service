@@ -1,5 +1,6 @@
 # Large model files (exclude from git)
 models/
+ecr-build/models/
 *.bin
 *.safetensors
 *.h5
