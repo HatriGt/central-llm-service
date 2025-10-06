@@ -1,0 +1,29 @@
+# Large model files (exclude from git)
+models/
+*.bin
+*.safetensors
+*.h5
+*.pt
+*.pth
+
+# Docker build artifacts
+*.tar
+*.zip
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
