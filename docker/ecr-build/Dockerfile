@@ -18,6 +18,9 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
+# Reset ENTRYPOINT from base image to avoid command duplication
+ENTRYPOINT []
+
 # Start the vLLM server
 CMD ["python3", "-m", "vllm.entrypoints.openai.api_server", \
      "--model", "/app/models/Ministral-8B-Instruct-2410/", \
