@@ -1,6 +1,6 @@
 {
   "family": "central-llm-service",
-  "networkMode": "awsvpc",
+  "networkMode": "bridge",
   "requiresCompatibilities": ["EC2"],
   "cpu": "4096",
   "memory": "16384",
@@ -13,9 +13,12 @@
       "cpu": 4096,
       "memory": 16384,
       "essential": true,
+      "entryPoint": ["/bin/sh", "-c"],
+      "command": ["python3 -m vllm.entrypoints.openai.api_server --model /app/models/Ministral-8B-Instruct-2410/ --host 0.0.0.0 --port 8000 --served-model-name ministral-8b-instruct --max-model-len 24576 --gpu-memory-utilization 0.9 --trust-remote-code"],
       "portMappings": [
         {
           "containerPort": 8000,
+          "hostPort": 8000,
           "protocol": "tcp"
         }
       ],
@@ -43,7 +46,12 @@
         "retries": 3,
         "startPeriod": 60
       },
-      "resourceRequirements": []
+      "resourceRequirements": [
+        {
+          "type": "GPU",
+          "value": "1"
+        }
+      ]
     }
   ]
 }
