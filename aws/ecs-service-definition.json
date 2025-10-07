@@ -1,0 +1,18 @@
+{
+  "serviceName": "central-llm-service",
+  "cluster": "central-llm-service-cluster",
+  "taskDefinition": "central-llm-service",
+  "desiredCount": 1,
+  "launchType": "EC2",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": ["subnet-07b4b1c7bd77a628d", "subnet-09f116bb3ca0b1748"],
+      "securityGroups": ["sg-01348191cf1b4bc37"]
+    }
+  },
+  "healthCheckGracePeriodSeconds": 300,
+  "deploymentConfiguration": {
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 50
+  }
+}

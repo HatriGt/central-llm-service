@@ -1,0 +1,56 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - pip install huggingface_hub
+      - echo "Authenticating with Hugging Face..."
+      - echo "Logging into Amazon ECR..."
+      - aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 396360117331.dkr.ecr.eu-central-1.amazonaws.com
+  build:
+    commands:
+      - echo "Downloading Ministral 8B model..."
+      - cd ecr-build
+      - mkdir -p models/Ministral-8B-Instruct-2410
+      - |
+        python -c "
+        import os
+        from huggingface_hub import snapshot_download, login
+        
+        # Login with token
+        token = os.getenv('HUGGINGFACE_HUB_TOKEN')
+        if not token:
+            print('❌ HUGGINGFACE_HUB_TOKEN not found')
+            exit(1)
+            
+        print('🔐 Authenticating with Hugging Face...')
+        login(token=token)
+        
+        print('🚀 Downloading Ministral 8B model...')
+        print('This may take a while as the model is ~16GB...')
+        
+        try:
+            snapshot_download(
+                repo_id='mistralai/Ministral-8B-Instruct-2410',
+                local_dir='models/Ministral-8B-Instruct-2410',
+                token=token
+            )
+            print('✅ Model downloaded successfully!')
+        except Exception as e:
+            print(f'❌ Error downloading model: {e}')
+            exit(1)
+        "
+      - echo "Building Docker image..."
+      - docker build -t mistral8b-vllm .
+  post_build:
+    commands:
+      - echo "Tagging and pushing to ECR..."
+      - docker tag mistral8b-vllm:latest 396360117331.dkr.ecr.eu-central-1.amazonaws.com/mistral8b-vllm:latest
+      - docker push 396360117331.dkr.ecr.eu-central-1.amazonaws.com/mistral8b-vllm:latest
+      - echo "✅ Build completed successfully!"
+
+artifacts:
+  files:
+    - '**/*'
+  name: mistral8b-vllm-$(date +%Y-%m-%d)
