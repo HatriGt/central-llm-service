@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - echo "Downloading Ministral 8B model..."
-      - cd ecr-build
+      - cd docker/ecr-build
       - mkdir -p models/Ministral-8B-Instruct-2410
       - |
         python -c "
