@@ -28,3 +28,12 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Private keys and certificates (SECURITY)
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Documentation files (Markdown)
+*.md
