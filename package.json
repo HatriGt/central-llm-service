@@ -1,0 +1,16 @@
+{
+  "name": "central-llm-service-ops",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "launch": "bash scripts/launch-prod.sh",
+    "launch:ecr": "bash scripts/launch-prod-ecr.sh",
+    "shutdown": "bash scripts/shutdown-prod.sh",
+    "logs": "bash scripts/tail-logs.sh",
+    "logs:llm": "bash scripts/logs-ecs-recent.sh",
+    "logs:llm:live": "bash scripts/logs-ecs-live.sh",
+    "logs:api": "bash scripts/logs-apigw-recent.sh",
+    "logs:api:live": "bash scripts/logs-apigw-live.sh"
+  }
+}
+

@@ -24,6 +24,10 @@
         {
           "name": "CUDA_VISIBLE_DEVICES",
           "value": "0"
+        },
+        {
+          "name": "UVICORN_ACCESS_LOG",
+          "value": "false"
         }
       ],
       "logConfiguration": {

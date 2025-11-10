@@ -4,29 +4,28 @@ FROM vllm/vllm-openai:latest
 # Set working directory
 WORKDIR /app
 
+# Install additional dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Copy audit proxy application
+COPY app/ /app/app/
+
 # Copy all model files at once (simpler approach)
 COPY models/ /app/models/
 
 # Set environment variables
 ENV MODEL_PATH=/app/models/Ministral-8B-Instruct-2410/
 ENV CUDA_VISIBLE_DEVICES=0
+ENV PROXY_PORT=8000
+ENV VLLM_PORT=8001
 
 # Expose the port
 EXPOSE 8000
 
-# Health check
+# Health check (proxy exposes the health endpoint)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Reset ENTRYPOINT from base image to avoid command duplication
-ENTRYPOINT []
-
-# Start the vLLM server
-CMD ["python3", "-m", "vllm.entrypoints.openai.api_server", \
-     "--model", "/app/models/Ministral-8B-Instruct-2410/", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--served-model-name", "ministral-8b-instruct", \
-     "--max-model-len", "32768", \
-     "--gpu-memory-utilization", "0.9", \
-     "--trust-remote-code"]
+# Start the audit proxy which launches the vLLM server internally
+ENTRYPOINT ["python3", "/app/app/audit_proxy.py"]
