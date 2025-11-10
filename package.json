@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "launch": "bash scripts/launch-prod.sh",
+    "launch:ecr": "bash scripts/launch-prod-ecr.sh",
     "shutdown": "bash scripts/shutdown-prod.sh",
     "logs": "bash scripts/tail-logs.sh",
     "logs:llm": "bash scripts/logs-ecs-recent.sh",

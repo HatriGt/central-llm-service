@@ -1,0 +1,49 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowDynamoAuditTable",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DescribeTable"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-central-1:*:table/CentralLLMAudit",
+        "arn:aws:dynamodb:eu-central-1:*:table/CentralLLMAudit/index/*"
+      ]
+    },
+    {
+      "Sid": "AllowReadAuditObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::central-llm-audit/logs/*"
+    },
+    {
+      "Sid": "AllowS3AuditArchive",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:AbortMultipartUpload"
+      ],
+      "Resource": "arn:aws:s3:::central-llm-audit-raw/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    },
+    {
+      "Sid": "AllowDlqSendMessage",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:SendMessage"
+      ],
+      "Resource": "arn:aws:sqs:eu-central-1:396360117331:llm-audit-dlq"
+    }
+  ]
+}
+

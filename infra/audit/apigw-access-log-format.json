@@ -1,0 +1,14 @@
+{
+  "requestId":"$context.requestId",
+  "sourceIp":"$context.identity.sourceIp",
+  "requestTime":"$context.requestTime",
+  "routeKey":"$context.routeKey",
+  "status":"$context.status",
+  "latencyMs":"$context.integrationLatency",
+  "llmSource":"$util.escapeJavaScript($input.params().header.get('x-llm-source'))",
+  "llmUser":"$util.escapeJavaScript($input.params().header.get('x-llm-user'))",
+  "llmRequestType":"$util.escapeJavaScript($input.params().header.get('x-llm-request-type'))",
+  "requestBody":"$util.escapeJavaScript($input.body)",
+  "responseBody":"$util.escapeJavaScript($context.responseOverride.body)",
+  "debugHeaders":"$util.escapeJavaScript($input.params().header)"
+}
