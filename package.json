@@ -9,8 +9,12 @@
     "logs": "bash scripts/tail-logs.sh",
     "logs:llm": "bash scripts/logs-ecs-recent.sh",
     "logs:llm:live": "bash scripts/logs-ecs-live.sh",
+    "logs:lambda:live": "bash scripts/logs-lambda-live.sh",
+    "logs:host": "bash scripts/ecs-host-logs.sh",
     "logs:api": "bash scripts/logs-apigw-recent.sh",
-    "logs:api:live": "bash scripts/logs-apigw-live.sh"
+    "logs:api:live": "bash scripts/logs-apigw-live.sh",
+    "lambda:deploy": "bash scripts/deploy-lambda-audit.sh",
+    "codebuild:start": "bash scripts/codebuild-start.sh"
   }
 }
 

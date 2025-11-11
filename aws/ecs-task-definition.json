@@ -28,6 +28,18 @@
         {
           "name": "UVICORN_ACCESS_LOG",
           "value": "false"
+        },
+        {
+          "name": "AUDIT_BUCKET",
+          "value": "central-llm-audit"
+        },
+        {
+          "name": "AUDIT_PREFIX",
+          "value": "logs"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-central-1"
         }
       ],
       "logConfiguration": {

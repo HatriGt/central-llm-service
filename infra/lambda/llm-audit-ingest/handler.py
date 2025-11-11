@@ -120,6 +120,7 @@ def _build_preview(payload: Any) -> Optional[str]:
         text = payload if isinstance(payload, str) else json.dumps(payload)
     except (TypeError, ValueError):
         return None
+
     text = text.strip()
     if len(text) <= MAX_PREVIEW_CHARS:
         return text
@@ -163,5 +164,5 @@ def _normalize_timestamp(value: Any) -> str:
             return parsed.astimezone(timezone.utc).isoformat(timespec="milliseconds")
         except ValueError:
             pass
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+        return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
