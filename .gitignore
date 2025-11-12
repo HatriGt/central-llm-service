@@ -36,7 +36,6 @@ logs/
 *.pfx
 
 # Documentation files (Markdown)
-*.md
+*.1md
 
 *.cur*
-scripts/
