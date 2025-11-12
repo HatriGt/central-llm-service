@@ -28,6 +28,7 @@ AUDIT_BUCKET = os.environ.get("AUDIT_BUCKET")
 AUDIT_PREFIX = os.environ.get("AUDIT_PREFIX", "logs")
 AWS_REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "eu-central-1"))
 MAX_BODY_PREVIEW = int(os.environ.get("AUDIT_BODY_PREVIEW", "2048"))
+VLLM_READY_TIMEOUT = int(os.environ.get("VLLM_READY_TIMEOUT", "900"))  # 15 minutes default for large models
 
 app = FastAPI()
 _http_client: httpx.AsyncClient | None = None
@@ -144,20 +145,24 @@ def _put_audit_record(record: Dict[str, Any]) -> None:
         LOGGER.exception("Failed to write audit record to S3: %s", exc)
 
 
-async def wait_for_vllm_ready(timeout: int = 300) -> None:
+async def wait_for_vllm_ready(timeout: int | None = None) -> None:
+    if timeout is None:
+        timeout = VLLM_READY_TIMEOUT
     url = f"http://{VLLM_HOST}:{VLLM_PORT}/health"
-    LOGGER.info("Waiting for vLLM server readiness at %s", url)
+    LOGGER.info("Waiting for vLLM server readiness at %s (timeout: %d seconds)", url, timeout)
     start = time.time()
     async with httpx.AsyncClient(timeout=5.0) as client:
         while time.time() - start < timeout:
             try:
                 resp = await client.get(url)
                 if resp.status_code == 200:
-                    LOGGER.info("vLLM server is ready")
+                    elapsed = int(time.time() - start)
+                    LOGGER.info("vLLM server is ready (took %d seconds)", elapsed)
                     return
             except Exception:  # noqa: BLE001
                 await asyncio.sleep(2)
-        raise RuntimeError("vLLM server did not become ready in time")
+        elapsed = int(time.time() - start)
+        raise RuntimeError(f"vLLM server did not become ready in time (waited {elapsed} seconds)")
 
 
 @app.on_event("startup")

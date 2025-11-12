@@ -52,6 +52,10 @@
         {
           "name": "LLAMA_ATTRIBUTION",
           "value": "Built with Llama"
+        },
+        {
+          "name": "VLLM_READY_TIMEOUT",
+          "value": "900"
         }
       ],
       "logConfiguration": {
@@ -70,7 +74,7 @@
         "interval": 30,
         "timeout": 5,
         "retries": 3,
-        "startPeriod": 60
+        "startPeriod": 300
       },
       "resourceRequirements": [
         {
