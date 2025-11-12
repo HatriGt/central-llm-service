@@ -23,7 +23,7 @@ VLLM_HOST = os.environ.get("VLLM_HOST", "127.0.0.1")
 VLLM_PORT = int(os.environ.get("VLLM_PORT", "8001"))
 PROXY_HOST = os.environ.get("PROXY_HOST", "0.0.0.0")
 PROXY_PORT = int(os.environ.get("PROXY_PORT", "8000"))
-MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/Ministral-8B-Instruct-2410/")
+MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/Llama-3.2-11B-Vision-Instruct/")
 AUDIT_BUCKET = os.environ.get("AUDIT_BUCKET")
 AUDIT_PREFIX = os.environ.get("AUDIT_PREFIX", "logs")
 AWS_REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "eu-central-1"))
@@ -56,9 +56,9 @@ def start_vllm_process() -> subprocess.Popen:
         "--port",
         str(VLLM_PORT),
         "--served-model-name",
-        os.environ.get("SERVED_MODEL_NAME", "ministral-8b-instruct"),
+        os.environ.get("SERVED_MODEL_NAME", "llama-3.2-11b-vision-instruct"),
         "--max-model-len",
-        os.environ.get("MAX_MODEL_LEN", "32768"),
+        os.environ.get("MAX_MODEL_LEN", "50000"),
         "--gpu-memory-utilization",
         os.environ.get("GPU_MEMORY_UTILIZATION", "0.9"),
         "--trust-remote-code",

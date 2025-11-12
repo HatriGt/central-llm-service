@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "vllm-server",
-      "image": "396360117331.dkr.ecr.eu-central-1.amazonaws.com/mistral8b-vllm:latest",
+      "image": "396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama32-vision-vllm:latest",
       "cpu": 4096,
       "memory": 16384,
       "essential": true,
@@ -40,6 +40,18 @@
         {
           "name": "AWS_REGION",
           "value": "eu-central-1"
+        },
+        {
+          "name": "SERVED_MODEL_NAME",
+          "value": "llama-3.2-11b-vision-instruct"
+        },
+        {
+          "name": "MAX_MODEL_LEN",
+          "value": "50000"
+        },
+        {
+          "name": "LLAMA_ATTRIBUTION",
+          "value": "Built with Llama"
         }
       ],
       "logConfiguration": {

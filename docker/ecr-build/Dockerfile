@@ -1,5 +1,5 @@
-# Use official vLLM Docker image as base
-FROM vllm/vllm-openai:latest
+# Use official vLLM Docker image with Llama 3.2 Vision support
+FROM vllm/vllm-openai:0.5.4
 
 # Set working directory
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY app/ /app/app/
 COPY models/ /app/models/
 
 # Set environment variables
-ENV MODEL_PATH=/app/models/Ministral-8B-Instruct-2410/
+ENV MODEL_PATH=/app/models/Llama-3.2-11B-Vision-Instruct/
 ENV CUDA_VISIBLE_DEVICES=0
 ENV PROXY_PORT=8000
 ENV VLLM_PORT=8001
