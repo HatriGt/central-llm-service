@@ -28,7 +28,7 @@ AUDIT_BUCKET = os.environ.get("AUDIT_BUCKET")
 AUDIT_PREFIX = os.environ.get("AUDIT_PREFIX", "logs")
 AWS_REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "eu-central-1"))
 MAX_BODY_PREVIEW = int(os.environ.get("AUDIT_BODY_PREVIEW", "2048"))
-VLLM_READY_TIMEOUT = int(os.environ.get("VLLM_READY_TIMEOUT", "900"))  # 15 minutes default for large models
+VLLM_READY_TIMEOUT = int(os.environ.get("VLLM_READY_TIMEOUT", "2400"))  # 40 minutes default for large models (Mistral took ~25min, Llama 3.2 is larger)
 
 app = FastAPI()
 _http_client: httpx.AsyncClient | None = None
