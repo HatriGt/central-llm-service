@@ -7,7 +7,7 @@ docker run -d \
   --gpus all \
   -p 8000:8000 \
   -v $(pwd)/models:/app/models \
-  vllm/vllm-openai:0.5.4 \
+  vllm/vllm-openai:v0.5.4 \
   python3 -m vllm.entrypoints.openai.api_server \
   --model /app/models/Llama-3.2-11B-Vision-Instruct/ \
   --host 0.0.0.0 \

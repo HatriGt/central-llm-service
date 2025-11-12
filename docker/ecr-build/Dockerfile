@@ -1,5 +1,5 @@
 # Use official vLLM Docker image with Llama 3.2 Vision support
-FROM vllm/vllm-openai:0.5.4
+FROM vllm/vllm-openai:v0.5.4
 
 # Set working directory
 WORKDIR /app
