@@ -1,5 +1,6 @@
 # Use official vLLM Docker image with Llama 3.2 Vision support
-FROM vllm/vllm-openai:v0.5.4
+# v0.6.2+ required for Llama 3.2 Vision support (released Sept 2024)
+FROM vllm/vllm-openai:v0.6.6
 
 # Set working directory
 WORKDIR /app

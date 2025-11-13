@@ -39,3 +39,4 @@ logs/
 *.1md
 
 *.cur*
+docker/ecr-build/app/__pyc*

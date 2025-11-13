@@ -84,12 +84,63 @@ aws elbv2 register-targets \
   --target-group-arn "${TARGET_GROUP_ARN}" \
   --targets "Id=${INSTANCE_ID},Port=${PORT}"
 
-echo ">>> Scaling ECS service ${SERVICE} to desired count 1"
-aws ecs update-service \
-  --region "${REGION}" \
-  --cluster "${CLUSTER}" \
-  --service "${SERVICE}" \
-  --desired-count 1 >/dev/null
+# Determine which task definition to use
+TASK_DEFINITION_FAMILY="${TASK_DEFINITION_FAMILY:-central-llm-service}"
+if [[ -n "${TASK_DEFINITION_REVISION:-}" ]]; then
+  TASK_DEF="${TASK_DEFINITION_FAMILY}:${TASK_DEFINITION_REVISION}"
+  echo ">>> Using specified task definition: ${TASK_DEF}"
+else
+  # Get the latest task definition revision
+  LATEST_REVISION="$(
+    aws ecs describe-task-definition \
+      --region "${REGION}" \
+      --task-definition "${TASK_DEFINITION_FAMILY}" \
+      --query 'taskDefinition.revision' \
+      --output text 2>/dev/null || echo ""
+  )"
+  if [[ -z "${LATEST_REVISION}" || "${LATEST_REVISION}" == "None" ]]; then
+    echo "ERROR: Failed to get latest task definition revision for ${TASK_DEFINITION_FAMILY}" >&2
+    exit 1
+  fi
+  TASK_DEF="${TASK_DEFINITION_FAMILY}:${LATEST_REVISION}"
+  echo ">>> Using latest task definition: ${TASK_DEF}"
+fi
+
+# Update service to use the task definition (if different) and scale to 1
+CURRENT_TASK_DEF="$(
+  aws ecs describe-services \
+    --region "${REGION}" \
+    --cluster "${CLUSTER}" \
+    --services "${SERVICE}" \
+    --query 'services[0].taskDefinition' \
+    --output text 2>/dev/null || echo ""
+)"
+
+# Extract revision from current task definition ARN (format: arn:aws:ecs:region:account:task-definition/family:revision)
+CURRENT_REVISION=""
+if [[ -n "${CURRENT_TASK_DEF}" && "${CURRENT_TASK_DEF}" != "None" ]]; then
+  CURRENT_REVISION=$(echo "${CURRENT_TASK_DEF}" | sed 's/.*:task-definition\/[^:]*:\([0-9]*\)/\1/')
+fi
+
+# Extract revision from target task definition
+TARGET_REVISION=$(echo "${TASK_DEF}" | sed 's/.*:\([0-9]*\)/\1/')
+
+if [[ -n "${CURRENT_REVISION}" && "${CURRENT_REVISION}" != "${TARGET_REVISION}" ]]; then
+  echo ">>> Updating service from revision ${CURRENT_REVISION} to ${TARGET_REVISION}"
+  aws ecs update-service \
+    --region "${REGION}" \
+    --cluster "${CLUSTER}" \
+    --service "${SERVICE}" \
+    --task-definition "${TASK_DEF}" \
+    --desired-count 1 >/dev/null
+else
+  echo ">>> Scaling ECS service ${SERVICE} to desired count 1 (using task definition ${TASK_DEF})"
+  aws ecs update-service \
+    --region "${REGION}" \
+    --cluster "${CLUSTER}" \
+    --service "${SERVICE}" \
+    --desired-count 1 >/dev/null
+fi
 
 SERVICE_STABLE_TIMEOUT="${SERVICE_STABLE_TIMEOUT:-3600}"
 SERVICE_STABLE_INTERVAL="${SERVICE_STABLE_INTERVAL:-15}"

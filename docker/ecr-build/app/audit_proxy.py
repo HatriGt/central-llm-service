@@ -5,6 +5,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -45,6 +46,23 @@ def _create_s3_client():
     return boto3.client("s3", **session_kwargs)
 
 
+def _read_vllm_output(process: subprocess.Popen) -> None:
+    """Read vLLM subprocess output and log it."""
+    if process.stdout is None:
+        return
+    try:
+        for line in iter(process.stdout.readline, b""):
+            if not line:
+                break
+            line_text = line.decode("utf-8", errors="replace").rstrip()
+            if line_text:
+                LOGGER.info("[vLLM] %s", line_text)
+    except Exception as exc:
+        LOGGER.exception("Error reading vLLM output: %s", exc)
+    finally:
+        LOGGER.info("vLLM output reader thread finished")
+
+
 def start_vllm_process() -> subprocess.Popen:
     args = [
         sys.executable,
@@ -66,7 +84,13 @@ def start_vllm_process() -> subprocess.Popen:
     ]
 
     LOGGER.info("Starting vLLM server with args: %s", args)
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+    
+    # Start background thread to read and log vLLM output
+    output_thread = threading.Thread(target=_read_vllm_output, args=(process,), daemon=True)
+    output_thread.start()
+    LOGGER.info("Started vLLM output reader thread")
+    
     return process
 
 
@@ -151,8 +175,23 @@ async def wait_for_vllm_ready(timeout: int | None = None) -> None:
     url = f"http://{VLLM_HOST}:{VLLM_PORT}/health"
     LOGGER.info("Waiting for vLLM server readiness at %s (timeout: %d seconds)", url, timeout)
     start = time.time()
+    last_status_log = start
+    check_interval = 2
+    status_log_interval = 60  # Log status every 60 seconds
+    
     async with httpx.AsyncClient(timeout=5.0) as client:
         while time.time() - start < timeout:
+            # Check if vLLM process is still running
+            if _vllm_process is not None:
+                return_code = _vllm_process.poll()
+                if return_code is not None:
+                    elapsed = int(time.time() - start)
+                    raise RuntimeError(
+                        f"vLLM process exited unexpectedly with code {return_code} "
+                        f"(waited {elapsed} seconds). Check logs for details."
+                    )
+            
+            # Try health check
             try:
                 resp = await client.get(url)
                 if resp.status_code == 200:
@@ -160,9 +199,30 @@ async def wait_for_vllm_ready(timeout: int | None = None) -> None:
                     LOGGER.info("vLLM server is ready (took %d seconds)", elapsed)
                     return
             except Exception:  # noqa: BLE001
-                await asyncio.sleep(2)
+                pass
+            
+            # Log progress periodically
+            now = time.time()
+            if now - last_status_log >= status_log_interval:
+                elapsed = int(now - start)
+                remaining = timeout - elapsed
+                LOGGER.info(
+                    "Still waiting for vLLM... (elapsed: %d seconds, remaining: %d seconds, "
+                    "process running: %s)",
+                    elapsed,
+                    remaining,
+                    _vllm_process.poll() is None if _vllm_process else "N/A",
+                )
+                last_status_log = now
+            
+            await asyncio.sleep(check_interval)
+        
         elapsed = int(time.time() - start)
-        raise RuntimeError(f"vLLM server did not become ready in time (waited {elapsed} seconds)")
+        process_status = "running" if _vllm_process and _vllm_process.poll() is None else "stopped"
+        raise RuntimeError(
+            f"vLLM server did not become ready in time (waited {elapsed} seconds, "
+            f"process status: {process_status}). Check logs for vLLM output."
+        )
 
 
 @app.on_event("startup")
