@@ -10,9 +10,9 @@ phases:
       - aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 396360117331.dkr.ecr.eu-central-1.amazonaws.com
   build:
     commands:
-      - echo "Downloading Llama 3.2 11B Vision Instruct model..."
+      - echo "Downloading Llama 3.1 8B Instruct model..."
       - cd docker/ecr-build
-      - mkdir -p models/Llama-3.2-11B-Vision-Instruct
+      - mkdir -p models/Llama-3.1-8B-Instruct
       - |
         python -c "
         import os
@@ -27,13 +27,13 @@ phases:
         print('🔐 Authenticating with Hugging Face...')
         login(token=token)
         
-        print('🚀 Downloading Llama 3.2 11B Vision Instruct model...')
-        print('This may take a while as the model is ~30GB...')
+        print('🚀 Downloading Llama 3.1 8B Instruct model...')
+        print('This may take a while as the model is ~16GB...')
         
         try:
             snapshot_download(
-                repo_id='meta-llama/Llama-3.2-11B-Vision-Instruct',
-                local_dir='models/Llama-3.2-11B-Vision-Instruct',
+                repo_id='meta-llama/Llama-3.1-8B-Instruct',
+                local_dir='models/Llama-3.1-8B-Instruct',
                 token=token
             )
             print('✅ Model downloaded successfully!')
@@ -42,15 +42,15 @@ phases:
             exit(1)
         "
       - echo "Building Docker image..."
-      - docker build -t llama32-vision-vllm .
+      - docker build -t llama31-8b-vllm .
   post_build:
     commands:
       - echo "Tagging and pushing to ECR..."
-      - docker tag llama32-vision-vllm:latest 396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama32-vision-vllm:latest
-      - docker push 396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama32-vision-vllm:latest
+      - docker tag llama31-8b-vllm:latest 396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama31-8b-vllm:latest
+      - docker push 396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama31-8b-vllm:latest
       - echo "✅ Build completed successfully!"
 
 artifacts:
   files:
     - '**/*'
-  name: llama32-vision-vllm-$(date +%Y-%m-%d)
+  name: llama31-8b-vllm-$(date +%Y-%m-%d)

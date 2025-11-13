@@ -1,5 +1,5 @@
-# Use official vLLM Docker image with Llama 3.2 Vision support
-# v0.6.2+ required for Llama 3.2 Vision support (released Sept 2024)
+# Use official vLLM Docker image
+# Llama 3.1 8B is supported in v0.5.4+ (we can use a stable version)
 FROM vllm/vllm-openai:v0.6.6
 
 # Set working directory
@@ -16,7 +16,7 @@ COPY app/ /app/app/
 COPY models/ /app/models/
 
 # Set environment variables
-ENV MODEL_PATH=/app/models/Llama-3.2-11B-Vision-Instruct/
+ENV MODEL_PATH=/app/models/Llama-3.1-8B-Instruct/
 ENV CUDA_VISIBLE_DEVICES=0
 ENV PROXY_PORT=8000
 ENV VLLM_PORT=8001

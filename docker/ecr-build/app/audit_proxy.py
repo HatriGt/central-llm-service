@@ -24,12 +24,12 @@ VLLM_HOST = os.environ.get("VLLM_HOST", "127.0.0.1")
 VLLM_PORT = int(os.environ.get("VLLM_PORT", "8001"))
 PROXY_HOST = os.environ.get("PROXY_HOST", "0.0.0.0")
 PROXY_PORT = int(os.environ.get("PROXY_PORT", "8000"))
-MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/Llama-3.2-11B-Vision-Instruct/")
+MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/Llama-3.1-8B-Instruct/")
 AUDIT_BUCKET = os.environ.get("AUDIT_BUCKET")
 AUDIT_PREFIX = os.environ.get("AUDIT_PREFIX", "logs")
 AWS_REGION = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION", "eu-central-1"))
 MAX_BODY_PREVIEW = int(os.environ.get("AUDIT_BODY_PREVIEW", "2048"))
-VLLM_READY_TIMEOUT = int(os.environ.get("VLLM_READY_TIMEOUT", "2400"))  # 40 minutes default for large models (Mistral took ~25min, Llama 3.2 is larger)
+VLLM_READY_TIMEOUT = int(os.environ.get("VLLM_READY_TIMEOUT", "600"))  # 10 minutes default (8B model loads faster than 11B vision)
 
 app = FastAPI()
 _http_client: httpx.AsyncClient | None = None
@@ -75,9 +75,9 @@ def start_vllm_process() -> subprocess.Popen:
         "--port",
         str(VLLM_PORT),
         "--served-model-name",
-        os.environ.get("SERVED_MODEL_NAME", "llama-3.2-11b-vision-instruct"),
+        os.environ.get("SERVED_MODEL_NAME", "llama-3.1-8b-instruct"),
         "--max-model-len",
-        os.environ.get("MAX_MODEL_LEN", "50000"),
+        os.environ.get("MAX_MODEL_LEN", "32768"),
         "--gpu-memory-utilization",
         os.environ.get("GPU_MEMORY_UTILIZATION", "0.9"),
         "--trust-remote-code",

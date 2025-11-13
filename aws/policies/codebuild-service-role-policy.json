@@ -14,7 +14,8 @@
       ],
       "Resource": [
         "arn:aws:ecr:eu-central-1:396360117331:repository/mistral8b-vllm",
-        "arn:aws:ecr:eu-central-1:396360117331:repository/llama32-vision-vllm"
+        "arn:aws:ecr:eu-central-1:396360117331:repository/llama32-vision-vllm",
+        "arn:aws:ecr:eu-central-1:396360117331:repository/llama31-8b-vllm"
       ]
     },
     {
