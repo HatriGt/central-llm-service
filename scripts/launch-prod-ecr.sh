@@ -135,11 +135,11 @@ if [[ -n "${CURRENT_REVISION}" && "${CURRENT_REVISION}" != "${TARGET_REVISION}" 
     --desired-count 1 >/dev/null
 else
   echo ">>> Scaling ECS service ${SERVICE} to desired count 1 (using task definition ${TASK_DEF})"
-  aws ecs update-service \
-    --region "${REGION}" \
-    --cluster "${CLUSTER}" \
-    --service "${SERVICE}" \
-    --desired-count 1 >/dev/null
+aws ecs update-service \
+  --region "${REGION}" \
+  --cluster "${CLUSTER}" \
+  --service "${SERVICE}" \
+  --desired-count 1 >/dev/null
 fi
 
 SERVICE_STABLE_TIMEOUT="${SERVICE_STABLE_TIMEOUT:-3600}"
@@ -188,9 +188,9 @@ while (( SERVICE_ELAPSED < SERVICE_STABLE_TIMEOUT )); do
     fi
     
     if [[ "${HEALTHY_COUNT}" == "${DESIRED_COUNT}" ]]; then
-      SERVICE_READY_TS=$(date +%s)
+    SERVICE_READY_TS=$(date +%s)
       echo ">>> ECS service reached steady state (running=${RUNNING_COUNT}, healthy=${HEALTHY_COUNT}, desired=${DESIRED_COUNT})"
-      break
+    break
     else
       echo ">>> ECS service tasks running but not all healthy yet (running=${RUNNING_COUNT}, healthy=${HEALTHY_COUNT}, desired=${DESIRED_COUNT})"
     fi

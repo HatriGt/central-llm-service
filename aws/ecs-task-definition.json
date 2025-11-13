@@ -2,16 +2,16 @@
   "family": "central-llm-service",
   "networkMode": "bridge",
   "requiresCompatibilities": ["EC2"],
-  "cpu": "4096",
-  "memory": "16384",
+  "cpu": "6144",
+  "memory": "20480",
   "executionRoleArn": "arn:aws:iam::396360117331:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::396360117331:role/ecsTaskRole",
   "containerDefinitions": [
     {
       "name": "vllm-server",
       "image": "396360117331.dkr.ecr.eu-central-1.amazonaws.com/llama31-8b-vllm:latest",
-      "cpu": 4096,
-      "memory": 16384,
+      "cpu": 6144,
+      "memory": 20480,
       "essential": true,
       "portMappings": [
         {
@@ -51,7 +51,7 @@
         },
         {
           "name": "GPU_MEMORY_UTILIZATION",
-          "value": "0.9"
+          "value": "0.92"
         },
         {
           "name": "PYTORCH_CUDA_ALLOC_CONF",
@@ -64,6 +64,18 @@
         {
           "name": "VLLM_READY_TIMEOUT",
           "value": "600"
+        },
+        {
+          "name": "MAX_NUM_SEQS",
+          "value": "64"
+        },
+        {
+          "name": "MAX_NUM_BATCHED_TOKENS",
+          "value": "24576"
+        },
+        {
+          "name": "BLOCK_SIZE",
+          "value": "16"
         }
       ],
       "logConfiguration": {
@@ -88,6 +100,13 @@
         {
           "type": "GPU",
           "value": "1"
+        }
+      ],
+      "ulimits": [
+        {
+          "name": "nofile",
+          "softLimit": 65536,
+          "hardLimit": 65536
         }
       ]
     }

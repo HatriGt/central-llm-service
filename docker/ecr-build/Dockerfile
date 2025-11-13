@@ -20,6 +20,9 @@ ENV MODEL_PATH=/app/models/Llama-3.1-8B-Instruct/
 ENV CUDA_VISIBLE_DEVICES=0
 ENV PROXY_PORT=8000
 ENV VLLM_PORT=8001
+# PyTorch optimizations for better performance
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+ENV CUDA_LAUNCH_BLOCKING=0
 
 # Expose the port
 EXPOSE 8000

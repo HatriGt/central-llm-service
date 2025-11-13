@@ -79,8 +79,19 @@ def start_vllm_process() -> subprocess.Popen:
         "--max-model-len",
         os.environ.get("MAX_MODEL_LEN", "32768"),
         "--gpu-memory-utilization",
-        os.environ.get("GPU_MEMORY_UTILIZATION", "0.9"),
+        os.environ.get("GPU_MEMORY_UTILIZATION", "0.92"),
         "--trust-remote-code",
+        # Batching optimizations for 30 concurrent users + large contexts
+        "--max-num-seqs",
+        os.environ.get("MAX_NUM_SEQS", "64"),  # 2x user count + buffer
+        "--max-num-batched-tokens",
+        os.environ.get("MAX_NUM_BATCHED_TOKENS", "24576"),  # High for large inputs/outputs
+        # Block size optimization for large contexts
+        "--block-size",
+        os.environ.get("BLOCK_SIZE", "16"),
+        # Prefix caching (helps with repeated prompts)
+        "--enable-prefix-caching",
+        # Keep logging enabled (you need logs)
     ]
 
     LOGGER.info("Starting vLLM server with args: %s", args)
@@ -228,7 +239,14 @@ async def wait_for_vllm_ready(timeout: int | None = None) -> None:
 @app.on_event("startup")
 async def on_startup():
     global _http_client
-    _http_client = httpx.AsyncClient(base_url=f"http://{VLLM_HOST}:{VLLM_PORT}", timeout=None)
+    _http_client = httpx.AsyncClient(
+        base_url=f"http://{VLLM_HOST}:{VLLM_PORT}",
+        timeout=None,
+        limits=httpx.Limits(
+            max_connections=100,  # High for 30 concurrent users
+            max_keepalive_connections=20  # Keep connections alive
+        )
+    )
 
 
 @app.on_event("shutdown")
@@ -290,7 +308,15 @@ def main():
     import uvicorn
 
     LOGGER.info("Starting audit proxy on %s:%s", PROXY_HOST, PROXY_PORT)
-    uvicorn.run(app, host=PROXY_HOST, port=PROXY_PORT, log_config=None)
+    uvicorn.run(
+        app,
+        host=PROXY_HOST,
+        port=PROXY_PORT,
+        log_config=None,  # Use our custom logging
+        workers=1,  # Single worker (vLLM handles concurrency)
+        loop="uvloop",  # Faster event loop
+        access_log=False  # Disable uvicorn access log (we have audit)
+    )
 
 
 if __name__ == "__main__":
