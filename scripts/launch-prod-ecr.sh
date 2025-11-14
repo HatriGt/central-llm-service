@@ -149,14 +149,62 @@ echo ">>> Waiting for ECS service to reach steady state (timeout ${SERVICE_STABL
 SERVICE_READY_TS=${INSTANCE_READY_TS}
 SERVICE_ELAPSED=0
 while (( SERVICE_ELAPSED < SERVICE_STABLE_TIMEOUT )); do
-  read -r RUNNING_COUNT PENDING_COUNT DESIRED_COUNT ROLLOUT_STATE FAILED_TASKS <<<"$(
+  # Get service metrics and PRIMARY deployment status separately for reliability
+  # This handles edge cases: no PRIMARY yet, multiple deployments, null values
+  RUNNING_COUNT="$(
     aws ecs describe-services \
       --region "${REGION}" \
       --cluster "${CLUSTER}" \
       --services "${SERVICE}" \
-      --query 'services[0].{running:runningCount,pending:pendingCount,desired:desiredCount,rolloutState:deployments[0].rolloutState,failed:deployments[0].failedTasks}' \
-      --output text
+      --query 'services[0].runningCount' \
+      --output text 2>/dev/null || echo "0"
   )"
+  
+  PENDING_COUNT="$(
+    aws ecs describe-services \
+      --region "${REGION}" \
+      --cluster "${CLUSTER}" \
+      --services "${SERVICE}" \
+      --query 'services[0].pendingCount' \
+      --output text 2>/dev/null || echo "0"
+  )"
+  
+  DESIRED_COUNT="$(
+    aws ecs describe-services \
+      --region "${REGION}" \
+      --cluster "${CLUSTER}" \
+      --services "${SERVICE}" \
+      --query 'services[0].desiredCount' \
+      --output text 2>/dev/null || echo "0"
+  )"
+  
+  # Get PRIMARY deployment status (if it exists)
+  # Use pipe syntax for more reliable JMESPath filtering
+  ROLLOUT_STATE="$(
+    aws ecs describe-services \
+      --region "${REGION}" \
+      --cluster "${CLUSTER}" \
+      --services "${SERVICE}" \
+      --query 'services[0].deployments[?status==`PRIMARY`] | [0].rolloutState' \
+      --output text 2>/dev/null || echo ""
+  )"
+  
+  # Get PRIMARY deployment failed tasks (only check PRIMARY, not old deployments)
+  FAILED_TASKS="$(
+    aws ecs describe-services \
+      --region "${REGION}" \
+      --cluster "${CLUSTER}" \
+      --services "${SERVICE}" \
+      --query 'services[0].deployments[?status==`PRIMARY`] | [0].failedTasks' \
+      --output text 2>/dev/null || echo "0"
+  )"
+  
+  # Handle null/empty values
+  [[ -z "${RUNNING_COUNT}" || "${RUNNING_COUNT}" == "None" ]] && RUNNING_COUNT="0"
+  [[ -z "${PENDING_COUNT}" || "${PENDING_COUNT}" == "None" ]] && PENDING_COUNT="0"
+  [[ -z "${DESIRED_COUNT}" || "${DESIRED_COUNT}" == "None" ]] && DESIRED_COUNT="0"
+  [[ -z "${ROLLOUT_STATE}" || "${ROLLOUT_STATE}" == "None" ]] && ROLLOUT_STATE=""
+  [[ -z "${FAILED_TASKS}" || "${FAILED_TASKS}" == "None" ]] && FAILED_TASKS="0"
 
   if [[ "${RUNNING_COUNT}" == "${DESIRED_COUNT}" && "${PENDING_COUNT}" == "0" && "${ROLLOUT_STATE}" == "COMPLETED" ]]; then
     # Check if tasks are actually healthy (not just running)
