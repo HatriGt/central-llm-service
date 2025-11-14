@@ -71,7 +71,7 @@
         },
         {
           "name": "MAX_NUM_BATCHED_TOKENS",
-          "value": "24576"
+          "value": "40960"
         },
         {
           "name": "BLOCK_SIZE",

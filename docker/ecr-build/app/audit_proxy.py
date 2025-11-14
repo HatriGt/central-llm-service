@@ -85,7 +85,7 @@ def start_vllm_process() -> subprocess.Popen:
         "--max-num-seqs",
         os.environ.get("MAX_NUM_SEQS", "64"),  # 2x user count + buffer
         "--max-num-batched-tokens",
-        os.environ.get("MAX_NUM_BATCHED_TOKENS", "24576"),  # High for large inputs/outputs
+        os.environ.get("MAX_NUM_BATCHED_TOKENS", "40960"),  # Must be >= MAX_MODEL_LEN (32768), higher for batching multiple large requests
         # Block size optimization for large contexts
         "--block-size",
         os.environ.get("BLOCK_SIZE", "16"),
